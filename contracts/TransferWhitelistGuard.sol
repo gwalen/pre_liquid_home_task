@@ -18,6 +18,9 @@ contract TransferWhitelistGuard is BaseGuard {
 
     mapping(address => bool) public whitelist;
 
+    event AddressAddedToWhitelist(address addr);
+    event AddressRemovedFromWhitelist(address addr);
+
     /**
      * Example modifier to restrict function execution
      */
@@ -52,13 +55,13 @@ contract TransferWhitelistGuard is BaseGuard {
         address executor
     ) external view override {
 
-        // bytes4 calledFunctionSig = abi.decode(data[:4], (bytes4));
+        bytes4 calledFunctionSig = abi.decode(data[:4], (bytes4));
 
-        // // check for ERC20 transfers and for raw ether transfer (msg.value)
-        // if(TRANSFER_FROM_SIG == calledFunctionSig || TRANSFER_SIG == calledFunctionSig || value > 0) {
-        //     bool isOnWhiteList = whitelist[to];
-        //     require(isOnWhiteList, "Can only transfer to whitelisted addresses");
-        // }
+        // check for ERC20 transfers and for raw ether transfer (msg.value)
+        if(TRANSFER_FROM_SIG == calledFunctionSig || TRANSFER_SIG == calledFunctionSig || value > 0) {
+            bool isOnWhiteList = whitelist[to];
+            require(isOnWhiteList, "Can only transfer to whitelisted addresses");
+        }
     }
 
     function checkAfterExecution(bytes32, bool) external view override {}
@@ -82,12 +85,12 @@ contract TransferWhitelistGuard is BaseGuard {
     function addToWhitelist(address addr) external onlyOwner(msg.sender) {
         require(!whitelist[addr], "Address is already whitelisted");
         whitelist[addr] = true;
-        // emit AddressAddedToWhitelist(addr);
+        emit AddressAddedToWhitelist(addr);
     }
 
     function removeFromWhitelist(address addr) external onlyOwner(msg.sender) {
         require(whitelist[addr], "Address is not whitelisted");
         whitelist[addr] = false;
-        // emit AddressRemovedFromWhitelist(addr);
+        emit AddressRemovedFromWhitelist(addr);
     }
 }
